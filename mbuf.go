@@ -1,10 +1,14 @@
 package dpdk
 
 /*
+#cgo CFLAGS: -m64 -pthread -O3 -march=native -I/usr/local/include/dpdk
+#cgo LDFLAGS: -L/usr/local/lib -ldpdk -lz -lrt -lm -ldl -lfuse
+
 #include <rte_config.h>
 #include <rte_mbuf.h>
 */
 import "C"
+import "unsafe"
 
 const (
 	PKT_RX_VLAN_PKT                     = uint64(C.PKT_RX_VLAN_PKT)
@@ -84,14 +88,40 @@ const (
 	RTE_PTYPE_INNER_L4_MASK             = uint64(C.RTE_PTYPE_INNER_L4_MASK)
 	RTE_MBUF_PRIV_ALIGN                 = uint64(C.RTE_MBUF_PRIV_ALIGN)
 	RTE_MBUF_DEFAULT_DATAROOM           = uint64(C.RTE_MBUF_DEFAULT_DATAROOM)
+	RTE_MBUF_DEFAULT_BUF_SIZE           = uint(C.RTE_MBUF_DEFAULT_BUF_SIZE)
 )
 
+// RteMbuf is generic rte_mbuf, containing a packet mbuf
 type RteMbuf C.struct_rte_mbuf
 type RtePktMbufPoolPrivate C.struct_rte_pktmbuf_pool_private
 
 func RtePktMbufPoolCreate(name string, n, cache_size, priv_size,
 	data_room_size uint, socket_id int) *RteMemPool {
-	return (*RteMemPool)(C.rte_pktmbuf_pool_create(C.CString(name),
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	return (*RteMemPool)(C.rte_pktmbuf_pool_create(cName,
 		C.unsigned(n), C.unsigned(cache_size), C.uint16_t(priv_size),
 		C.uint16_t(data_room_size), C.int(socket_id)))
+}
+
+// RtePktMbufAlloc allocates a new mbuf from a mempool
+func RtePktMbufAlloc(mp *RteMemPool) *RteMbuf {
+	return (*RteMbuf)(unsafe.Pointer(C.rte_pktmbuf_alloc((*C.struct_rte_mempool)(unsafe.Pointer(mp)))))
+}
+
+// RtePktMbufFree frees a packet mbuf back into its original mempool
+func RtePktMbufFree(buf *RteMbuf) {
+	C.rte_pktmbuf_free((*C.struct_rte_mbuf)(unsafe.Pointer(buf)))
+}
+
+// RtePktMbufMtoD returns a pointer pointing to the start of the data in mbuf
+func RtePktMbufMtoD(buf *RteMbuf) unsafe.Pointer {
+	mbuf := (*C.struct_rte_mbuf)(unsafe.Pointer(buf))
+	return unsafe.Pointer(uintptr(unsafe.Pointer((*C.char)(mbuf.buf_addr))) + uintptr(mbuf.data_off))
+}
+
+// RtePktMbufDataLen returns the length of the segment.
+func RtePktMbufDataLen(buf *RteMbuf) uint16 {
+	mbuf := (*C.struct_rte_mbuf)(unsafe.Pointer(buf))
+	return uint16(mbuf.data_len)
 }

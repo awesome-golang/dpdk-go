@@ -1,26 +1,36 @@
 package dpdk
 
 /*
+#cgo CFLAGS: -m64 -pthread -O3 -march=native -I/usr/local/include/dpdk
+#cgo LDFLAGS: -L/usr/local/lib -ldpdk -lz -lrt -lm -ldl -lfuse
+
 #include <rte_config.h>
 #include <rte_ethdev.h>
 */
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
 /* Macros */
 const (
 	ETH_LINK_SPEED_AUTONEG          = int(C.ETH_LINK_SPEED_AUTONEG)
-	ETH_LINK_SPEED_10               = int(C.ETH_LINK_SPEED_10)
-	ETH_LINK_SPEED_100              = int(C.ETH_LINK_SPEED_100)
-	ETH_LINK_SPEED_1000             = int(C.ETH_LINK_SPEED_1000)
-	ETH_LINK_SPEED_10000            = int(C.ETH_LINK_SPEED_10000)
+	ETH_LINK_SPEED_10M_HD           = int(C.ETH_LINK_SPEED_10M_HD)
+	ETH_LINK_SPEED_10M              = int(C.ETH_LINK_SPEED_10M)
+	ETH_LINK_SPEED_100M_HD          = int(C.ETH_LINK_SPEED_100M_HD)
+	ETH_LINK_SPEED_100M             = int(C.ETH_LINK_SPEED_100M)
+	ETH_LINK_SPEED_1G               = int(C.ETH_LINK_SPEED_1G)
+	ETH_LINK_SPEED_2_5G             = int(C.ETH_LINK_SPEED_2_5G)
+	ETH_LINK_SPEED_5G               = int(C.ETH_LINK_SPEED_5G)
 	ETH_LINK_SPEED_10G              = int(C.ETH_LINK_SPEED_10G)
 	ETH_LINK_SPEED_20G              = int(C.ETH_LINK_SPEED_20G)
+	ETH_LINK_SPEED_25G              = int(C.ETH_LINK_SPEED_25G)
 	ETH_LINK_SPEED_40G              = int(C.ETH_LINK_SPEED_40G)
-	ETH_LINK_AUTONEG_DUPLEX         = int(C.ETH_LINK_AUTONEG_DUPLEX)
+	ETH_LINK_SPEED_50G              = int(C.ETH_LINK_SPEED_50G)
+	ETH_LINK_SPEED_56G              = int(C.ETH_LINK_SPEED_56G)
+	ETH_LINK_SPEED_100G             = int(C.ETH_LINK_SPEED_100G)
 	ETH_LINK_HALF_DUPLEX            = int(C.ETH_LINK_HALF_DUPLEX)
 	ETH_LINK_FULL_DUPLEX            = int(C.ETH_LINK_FULL_DUPLEX)
 	ETH_MQ_RX_RSS_FLAG              = int(C.ETH_MQ_RX_RSS_FLAG)
@@ -164,7 +174,9 @@ type RteEthTxqInfo C.struct_rte_eth_txq_info
 type RteEthXStats C.struct_rte_eth_xstats
 type RteEthDcbTcQueueMapping C.struct_rte_eth_dcb_tc_queue_mapping
 type RteEthDcbInfo C.struct_rte_eth_dcb_info
+type RteEthAddr C.struct_ether_addr
 
+//
 func RteEthDevCount() uint {
 	return uint(C.rte_eth_dev_count())
 }
@@ -249,4 +261,14 @@ func RteEthRxQueueDescriptorDone(port_id, queue_id, offset uint) uint {
 func RteEthTxBurst(port_id, queue_id uint, tx_pkts *unsafe.Pointer, nb_pkts uint) uint {
 	return uint(C.rte_eth_tx_burst(C.uint8_t(port_id), C.uint16_t(queue_id),
 		(**C.struct_rte_mbuf)(unsafe.Pointer(tx_pkts)), C.uint16_t(nb_pkts)))
+}
+
+func RteEthDevSocketID(port_id uint) uint {
+	return uint(C.rte_eth_dev_socket_id(C.uint8_t(port_id)))
+}
+
+func RteEthMacAddr(port_id uint) string {
+	var addr C.struct_ether_addr
+	C.rte_eth_macaddr_get(C.uint8_t(port_id), &addr)
+	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", addr.addr_bytes[0], addr.addr_bytes[1], addr.addr_bytes[2], addr.addr_bytes[3], addr.addr_bytes[4], addr.addr_bytes[5])
 }
