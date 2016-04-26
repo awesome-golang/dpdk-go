@@ -24,15 +24,41 @@
 </h1>
 
 <h2>
-<a id="install-dpdk-go" class="anchor" href="#install-dpdk-go" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install dpdk-go</h2>
+<a id="install-dpdk-and-dpdk-go" class="anchor" href="#install-dpdk-and-dpdk-go" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install dpdk and dpdk-go</h2>
 
 <ul>
+<li>Setup <code>RTE_TARGET</code>, <code>RTE_SDK</code> and <code>DPDK_VERSION</code> in <code>hack/dpdk.rc</code>
+</li>
 <li>Install dpdk by <code>hack/dpdk-install.sh</code>
+</li>
+<li>Initial dpdk:
+
+<ul>
+<li><code>source hack/dpdk-util.sh</code></li>
+<li><code>init-dpdk</code></li>
+</ul>
 </li>
 <li><code>go get -u github.com/feiskyer/dpdk-go</code></li>
 </ul>
 
-<p>If dpdk is installed inside a virtual machine, (e.g. VMWARE), then patch <code>hack/vmware.diff</code> must be applied before compling the dpdk source.</p>
+<p>Notes: If dpdk is installed inside a virtual machine, (e.g. VMWARE), then patch <code>hack/vmware.diff</code> must be applied before compling the dpdk source.</p>
+
+<h2>
+<a id="install-dpdk-ovs" class="anchor" href="#install-dpdk-ovs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install dpdk-ovs</h2>
+
+<ul>
+<li>First install dpdk</li>
+<li>Install ovs: <code>hack/ovs-install.sh</code>
+</li>
+<li>Start ovs with dpdk:
+
+<ul>
+<li><code>source hack/dpdk-util.sh</code></li>
+<li><code>init-dpdk</code></li>
+<li><code>start-ovs</code></li>
+</ul>
+</li>
+</ul>
 
 <h2>
 <a id="sample-applications" class="anchor" href="#sample-applications" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sample Applications</h2>
@@ -44,6 +70,29 @@
 <pre><code>$ go get -u github.com/feiskyer/dpdk-go/samples/helloworld
 $ helloworld -c3 -n1
 </code></pre>
+
+<h3>
+<a id="skeleton" class="anchor" href="#skeleton" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><a href="http://dpdk.org/doc/guides/sample_app_ug/skeleton.html">skeleton</a>
+</h3>
+
+<p>A simple skeleton example of a forwarding application.</p>
+
+<pre><code>$ go get -u github.com/feiskyer/dpdk-go/samples/skeleton
+$ skeleton -c3 -n1
+</code></pre>
+
+<h3>
+<a id="exception-path" class="anchor" href="#exception-path" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><a href="http://dpdk.org/doc/guides/sample_app_ug/exception_path.html">Exception Path</a>
+</h3>
+
+<p>Reads packets from <code>dpdk port 0</code>, and then write the data to <code>tap_dpdk_00</code>:</p>
+
+<div class="highlight highlight-source-shell"><pre>$ go get -u github.com/feiskyer/dpdk-go/samples/exception-path
+$ exception-path</pre></div>
+
+<p>Open another termial, and run </p>
+
+<div class="highlight highlight-source-shell"><pre>$ tcpdump -nn -i tap_dpdk_00</pre></div>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/feiskyer/dpdk-go">Dpdk-go</a> is maintained by <a href="https://github.com/feiskyer">feiskyer</a>.</span>
