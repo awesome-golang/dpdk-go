@@ -1,5 +1,7 @@
 # Go bindings for DPDK
 
+[![Build Status](https://travis-ci.org/feiskyer/dpdk-go.svg?branch=master)](https://travis-ci.org/feiskyer/dpdk-go)[![Go Report Card](https://goreportcard.com/badge/github.com/feiskyer/dpdk-go)](https://goreportcard.com/report/github.com/feiskyer/dpdk-go)
+
 ## Install dpdk and dpdk-go
 
 Setup `RTE_TARGET`, `RTE_SDK` and `DPDK_VERSION` in `hack/dpdk.rc`, then run
